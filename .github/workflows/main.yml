@@ -1,0 +1,40 @@
+name: 🚀 Deploy a Ferozo
+
+on:
+  push:
+    branches:
+      - main  # Or specify the branch you want to deploy from
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.4'  # You can adjust based on QloApps requirements
+        extensions: mbstring, mysqli, gd, pdo_mysql
+
+    - name: Install Dependencies
+      run: composer install --no-dev --optimize-autoloader
+
+    - name: Deploy to Ferozo Hosting via FTP
+      uses: SamKirkland/FTP-Deploy-Action@4.1.0
+      with:
+        server: ${{ secrets.FEROZO_USER }}.ferozo.com
+        username: ${{ secrets.FEROZO_USER }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./
+        server-dir: /public_html/${{ secrets.PROJECT_NAME }}/
+        exclude: |
+          .git*
+          node_modules/*
+          tests/*
+          README.md
+          .env
+        delete: true
+        log-level: verbose
